@@ -41,7 +41,7 @@ type
     FClosing: Boolean;
     FNotificationCenter: TNotificationCenter;
     FRunning: Boolean;
-    FFWebSocket: TWebSocket;
+    FWebSocket: TWebSocket;
     function  GetWebSocket: TWebSocket;
     procedure HandleError(const msg: string); overload;
     procedure HandleError(const err: IError); overload;
@@ -100,15 +100,15 @@ end;
 destructor TFrmMain.Destroy;
 begin
   if Assigned(FNotificationCenter) then FNotificationCenter.Free;
-  if Assigned(FFWebSocket) then FFWebSocket.Free;
+  if Assigned(FWebSocket) then FWebSocket.Free;
   inherited Destroy;
 end;
 
 function TFrmMain.GetWebSocket: TWebSocket;
 begin
-  if not Assigned(FFWebSocket) then
-    FFWebSocket := TWebSocket.Create(Alchemy);
-  Result := FFWebSocket;
+  if not Assigned(FWebSocket) then
+    FWebSocket := TWebSocket.Create(Alchemy);
+  Result := FWebSocket;
 end;
 
 procedure TFrmMain.HandleError(const msg: string);
