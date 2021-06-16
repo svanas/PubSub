@@ -1,0 +1,42 @@
+object FrmMain: TFrmMain
+  Left = 0
+  Top = 0
+  Caption = 'PubSub'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCloseQuery = FormCloseQuery
+  DesignerMasterStyle = 0
+  object btnStart: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 80.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Start'
+    OnClick = btnStartClick
+  end
+  object btnStop: TButton
+    Enabled = False
+    Position.X = 8.000000000000000000
+    Position.Y = 38.000000000000000000
+    Size.Width = 80.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Stop'
+    OnClick = btnStopClick
+  end
+  object lblCurrBlock: TLabel
+    Position.X = 8.000000000000000000
+    Position.Y = 68.000000000000000000
+    Size.Width = 296.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'CURR_BLOCK_NUMBER'
+    TabOrder = 2
+  end
+end
