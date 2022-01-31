@@ -80,7 +80,7 @@ resourcestring
 constructor TWebSocket.Create(gateway: TGateway);
 begin
   inherited Create;
-  Self.FClient := common.GetClientEx(Mainnet, gateway);
+  Self.FClient := common.GetClientEx(Ethereum, gateway);
 end;
 
 function TWebSocket.Subscribed: Boolean;
@@ -132,7 +132,7 @@ begin
 
   if Supports(err, ITxError, txError) then
   begin
-    common.OpenTransaction(Mainnet, txError.Hash);
+    common.OpenTransaction(Ethereum, txError.Hash);
     EXIT;
   end;
 
