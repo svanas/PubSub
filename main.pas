@@ -203,7 +203,7 @@ begin
       WebSocket.Client,
       newHeads,
       // one-time callback
-      procedure(const subscription: string; err: IError)
+      procedure(subscription: string; err: IError)
       begin
         if Assigned(err) then
         begin

@@ -88,17 +88,17 @@ begin
   Result := GetApiKey(gateway);
 end;
 
-function GetClient(chain: TChain; gateway: TGateway): TWeb3;
-
-  function endpoint: string;
-  begin
-    case gateway of
-      Infura:
-        Result := web3.eth.infura.endpoint(chain, HTTPS, GetApiKey(Infura));
-      Alchemy:
-        Result := web3.eth.alchemy.endpoint(chain, HTTPS, GetApiKey(Alchemy));
-    end;
+function GetEndpoint(chain: TChain; gateway: TGateway; protocol: TProtocol): string;
+begin
+  case gateway of
+    Infura:
+      Result := web3.eth.infura.endpoint(chain, protocol, GetApiKey(Infura)).Value;
+    Alchemy:
+      Result := web3.eth.alchemy.endpoint(chain, protocol, GetApiKey(Alchemy)).Value;
   end;
+end;
+
+function GetClient(chain: TChain; gateway: TGateway): TWeb3;
 
   function CreateProtocol(rps: TReqPerSec): IJsonRpc;
   begin
@@ -116,23 +116,12 @@ const
 begin
   Result := TWeb3.Create(
     chain,
-    endpoint,
+    GetEndpoint(chain, gateway, HTTPS),
     CreateProtocol(REQUESTS_PER_SECOND[gateway])
   );
 end;
 
 function GetClientEx(chain: TChain; gateway: TGateway): TWeb3Ex;
-
-  function endpoint: string;
-  begin
-    case gateway of
-      Infura:
-        Result := web3.eth.infura.endpoint(chain, WebSocket, GetApiKey(Infura));
-      Alchemy:
-        Result := web3.eth.alchemy.endpoint(chain, WebSocket, GetApiKey(Alchemy));
-    end;
-  end;
-
 const
   SECURITY: array[TGateway] of TSecurity = (
     TLS_12,   // Infura
@@ -141,7 +130,7 @@ const
 begin
   Result := TWeb3Ex.Create(
     chain,
-    endpoint,
+    GetEndpoint(chain, gateway, WebSocket),
     TJsonRpcSgcWebSocket.Create,
     SECURITY[gateway]
   );
@@ -158,12 +147,12 @@ begin
 end;
 
 procedure ShowError(const err: IError; chain: TChain);
-var
-  txError: ITxError;
 begin
   if Supports(err, ISignatureDenied) then
     EXIT;
   TThread.Synchronize(nil, procedure
+  var
+    txError: ITxError;
   begin
 {$WARN SYMBOL_DEPRECATED OFF}
     if Supports(err, ITxError, txError) then
