@@ -10,6 +10,7 @@ uses
   FMX.Controls,
   FMX.Controls.Presentation,
   FMX.Forms,
+  FMX.ListBox,
   FMX.StdCtrls,
   FMX.Types,
   // web3
@@ -22,17 +23,22 @@ type
   TWebSocket = class(TCriticalThing)
   strict private
     FClient: IWeb3Ex;
+    FGateway: TGateway;
     FSubscription: string;
   public
     function Subscribed: Boolean;
     constructor Create(gateway: TGateway); reintroduce;
     property Client: IWeb3Ex read FClient;
+    property Gateway: TGateway read FGateway;
     property Subscription: string read FSubscription write FSubscription;
   end;
 
   TFrmMain = class(TForm)
+    Panel1: TPanel;
     btnStart: TButton;
     btnStop: TButton;
+    cboGateway: TComboBox;
+    Panel2: TPanel;
     lblCurrBlock: TLabel;
     procedure btnStartClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
@@ -42,6 +48,7 @@ type
     FNotificationCenter: TNotificationCenter;
     FRunning: Boolean;
     FWebSocket: TWebSocket;
+    function  GetGateway: TGateway;
     function  GetWebSocket: TWebSocket;
     procedure HandleError(const msg: string); overload;
     procedure HandleError(const err: IError); overload;
@@ -52,6 +59,7 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     property Closing: Boolean read FClosing;
+    property Gateway: TGateway read GetGateway;
     property NotificationCenter: TNotificationCenter read FNotificationCenter;
     property Running: Boolean read FRunning write SetRunning;
     property WebSocket: TWebSocket read GetWebSocket;
@@ -68,19 +76,21 @@ uses
   // Delphi
   System.JSON,
   System.SysUtils,
+  System.TypInfo,
   // web3
   web3.eth.pubsub,
   web3.eth.tx;
 
 resourcestring
-  CURR_BLOCK = 'CURRENT BLOCK: %s';
+  CURR_BLOCK = 'CURRENT BLOCK : %s';
 
 { TWebSocket }
 
 constructor TWebSocket.Create(gateway: TGateway);
 begin
   inherited Create;
-  Self.FClient := common.GetClientEx(Ethereum, gateway);
+  Self.FClient := common.GetClient(Ethereum, gateway);
+  Self.FGateway := gateway;
 end;
 
 function TWebSocket.Subscribed: Boolean;
@@ -94,6 +104,9 @@ constructor TFrmMain.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   FNotificationCenter := TNotificationCenter.Create(Self);
+  for var G := System.Low(TGateway) to System.High(TGateway) do
+    cboGateway.Items.AddObject(GetEnumName(TypeInfo(TGateway), Ord(G)), TObject(G));
+  cboGateway.ItemIndex := 0;
   UpdateUI;
 end;
 
@@ -104,10 +117,20 @@ begin
   inherited Destroy;
 end;
 
+function TFrmMain.GetGateway: TGateway;
+begin
+  Result := TGateway(cboGateway.Items.Objects[cboGateway.ItemIndex]);
+end;
+
 function TFrmMain.GetWebSocket: TWebSocket;
 begin
   if not Assigned(FWebSocket) then
-    FWebSocket := TWebSocket.Create(Alchemy);
+    FWebSocket := TWebSocket.Create(Self.Gateway);
+  if FWebSocket.Gateway <> Self.Gateway then
+  begin
+    FWebSocket.Free;
+    FWebSocket := TWebSocket.Create(Self.Gateway);
+  end;
   Result := FWebSocket;
 end;
 
@@ -124,18 +147,7 @@ begin
 end;
 
 procedure TFrmMain.HandleError(const err: IError);
-var
-  txError: ITxError;
 begin
-  if Supports(err, ISignatureDenied) then
-    EXIT;
-
-  if Supports(err, ITxError, txError) then
-  begin
-    common.OpenTransaction(Ethereum, txError.Hash);
-    EXIT;
-  end;
-
   Self.HandleError(err.Message);
 end;
 
@@ -152,8 +164,9 @@ end;
 
 procedure TFrmMain.UpdateUI;
 begin
+  cboGateway.Enabled := not Running;
   btnStart.Enabled := not Running;
-  btnStop. Enabled := Running;
+  btnStop.Enabled := Running;
 
   if Running then
     Self.Caption := 'Running'
@@ -228,6 +241,7 @@ begin
         Self.Synchronize(procedure
         begin
           lblCurrBlock.Text := Format(CURR_BLOCK, [web3.eth.pubsub.blockNumber(notification).ToString]);
+          Beep;
         end)
       end,
       // non-JSON-RPC-error handler (probably a socket error)
