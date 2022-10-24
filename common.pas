@@ -71,7 +71,7 @@ begin
   Result := GetApiKey(gateway);
 end;
 
-function GetEndpoint(chain: TChain; gateway: TGateway; protocol: TProtocol): string;
+function GetEndpoint(chain: TChain; gateway: TGateway; protocol: TTransport): string;
 begin
   case gateway of
     Alchemy:
