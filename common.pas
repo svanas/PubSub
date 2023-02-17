@@ -89,7 +89,7 @@ const
   );
 begin
   Result := TWeb3Ex.Create(
-    chain.SetGateway(WebSocket, GetEndpoint(chain, gateway, WebSocket)),
+    chain.SetRPC(WebSocket, GetEndpoint(chain, gateway, WebSocket)),
     TJsonRpcSgcWebSocket.Create,
     SECURITY[gateway]
   );
