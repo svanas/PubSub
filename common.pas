@@ -7,15 +7,14 @@ uses
   web3;
 
 type
-  TGateway = (Alchemy, Infura);
+  TProvider = (Alchemy, Infura);
 
-function GetClient(chain: TChain; gateway: TGateway): TWeb3Ex;
+function GetClient(chain: TChain; provider: TProvider): TWeb3Ex;
 
 implementation
 
 uses
   // Delphi
-  System.Classes,
   System.IOUtils,
   System.SysUtils,
   WinAPI.ShellAPI,
@@ -25,16 +24,16 @@ uses
   web3.eth.infura,
   web3.json.rpc.sgc.websockets;
 
-function GetApiKey(gateway: TGateway): string;
+function GetApiKey(provider: TProvider): string;
 
   function API_KEY_FILE: string;
   const
-    API_KEY_NAME: array[TGateway] of string = (
+    API_KEY_NAME: array[TProvider] of string = (
       'MY_ALCHEMY_API_KEY', // Alchemy
       'MY_INFURA_API_KEY'   // Infura
   );
   begin
-    Result := TPath.GetHomePath + TPath.DirectorySeparatorChar + API_KEY_NAME[gateway] + '.TXT';
+    Result := TPath.GetHomePath + TPath.DirectorySeparatorChar + API_KEY_NAME[provider] + '.TXT';
   end;
 
 var
@@ -68,30 +67,30 @@ begin
     CloseHandle(SEI.hProcess);
   end;
 
-  Result := GetApiKey(gateway);
+  Result := GetApiKey(provider);
 end;
 
-function GetEndpoint(chain: TChain; gateway: TGateway; protocol: TTransport): string;
+function GetEndpoint(chain: TChain; provider: TProvider; protocol: TTransport): string;
 begin
-  case gateway of
+  case provider of
     Alchemy:
-      Result := web3.eth.alchemy.endpoint(chain, protocol, GetApiKey(Alchemy)).Value;
+      Result := web3.eth.alchemy.endpoint(chain, protocol, GetApiKey(Alchemy), core).Value;
     Infura:
       Result := web3.eth.infura.endpoint(chain, protocol, GetApiKey(Infura)).Value;
   end;
 end;
 
-function GetClient(chain: TChain; gateway: TGateway): TWeb3Ex;
+function GetClient(chain: TChain; provider: TProvider): TWeb3Ex;
 const
-  SECURITY: array[TGateway] of TSecurity = (
+  SECURITY: array[TProvider] of TSecurity = (
     Automatic, // Alchemy
     TLS_12     // Infura
   );
 begin
   Result := TWeb3Ex.Create(
-    chain.SetRPC(WebSocket, GetEndpoint(chain, gateway, WebSocket)),
+    chain.SetRPC(WebSocket, GetEndpoint(chain, provider, WebSocket)),
     TJsonRpcSgcWebSocket.Create,
-    SECURITY[gateway]
+    SECURITY[provider]
   );
 end;
 

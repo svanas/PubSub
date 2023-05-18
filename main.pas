@@ -23,13 +23,13 @@ type
   TWebSocket = class(TCriticalThing)
   strict private
     FClient: IWeb3Ex;
-    FGateway: TGateway;
+    FProvider: TProvider;
     FSubscription: string;
   public
     function Subscribed: Boolean;
-    constructor Create(gateway: TGateway); reintroduce;
+    constructor Create(provider: TProvider); reintroduce;
     property Client: IWeb3Ex read FClient;
-    property Gateway: TGateway read FGateway;
+    property Provider: TProvider read FProvider;
     property Subscription: string read FSubscription write FSubscription;
   end;
 
@@ -37,7 +37,7 @@ type
     Panel1: TPanel;
     btnStart: TButton;
     btnStop: TButton;
-    cboGateway: TComboBox;
+    cboProvider: TComboBox;
     Panel2: TPanel;
     lblCurrBlock: TLabel;
     procedure btnStartClick(Sender: TObject);
@@ -48,7 +48,7 @@ type
     FNotificationCenter: TNotificationCenter;
     FRunning: Boolean;
     FWebSocket: TWebSocket;
-    function  GetGateway: TGateway;
+    function  GetProvider: TProvider;
     function  GetWebSocket: TWebSocket;
     procedure HandleError(const msg: string); overload;
     procedure HandleError(const err: IError); overload;
@@ -59,7 +59,7 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     property Closing: Boolean read FClosing;
-    property Gateway: TGateway read GetGateway;
+    property Provider: TProvider read GetProvider;
     property NotificationCenter: TNotificationCenter read FNotificationCenter;
     property Running: Boolean read FRunning write SetRunning;
     property WebSocket: TWebSocket read GetWebSocket;
@@ -86,11 +86,11 @@ resourcestring
 
 { TWebSocket }
 
-constructor TWebSocket.Create(gateway: TGateway);
+constructor TWebSocket.Create(provider: TProvider);
 begin
   inherited Create;
-  Self.FClient := common.GetClient(Ethereum, gateway);
-  Self.FGateway := gateway;
+  Self.FClient := common.GetClient(Ethereum, provider);
+  Self.FProvider := provider;
 end;
 
 function TWebSocket.Subscribed: Boolean;
@@ -104,9 +104,9 @@ constructor TFrmMain.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   FNotificationCenter := TNotificationCenter.Create(Self);
-  for var G := System.Low(TGateway) to System.High(TGateway) do
-    cboGateway.Items.AddObject(GetEnumName(TypeInfo(TGateway), Ord(G)), TObject(G));
-  cboGateway.ItemIndex := 0;
+  for var G := System.Low(TProvider) to System.High(TProvider) do
+    cboProvider.Items.AddObject(GetEnumName(TypeInfo(TProvider), Ord(G)), TObject(G));
+  cboProvider.ItemIndex := 0;
   UpdateUI;
 end;
 
@@ -117,19 +117,19 @@ begin
   inherited Destroy;
 end;
 
-function TFrmMain.GetGateway: TGateway;
+function TFrmMain.GetProvider: TProvider;
 begin
-  Result := TGateway(cboGateway.Items.Objects[cboGateway.ItemIndex]);
+  Result := TProvider(cboProvider.Items.Objects[cboProvider.ItemIndex]);
 end;
 
 function TFrmMain.GetWebSocket: TWebSocket;
 begin
   if not Assigned(FWebSocket) then
-    FWebSocket := TWebSocket.Create(Self.Gateway);
-  if FWebSocket.Gateway <> Self.Gateway then
+    FWebSocket := TWebSocket.Create(Self.Provider);
+  if FWebSocket.Provider <> Self.Provider then
   begin
     FWebSocket.Free;
-    FWebSocket := TWebSocket.Create(Self.Gateway);
+    FWebSocket := TWebSocket.Create(Self.Provider);
   end;
   Result := FWebSocket;
 end;
@@ -164,7 +164,7 @@ end;
 
 procedure TFrmMain.UpdateUI;
 begin
-  cboGateway.Enabled := not Running;
+  cboProvider.Enabled := not Running;
   btnStart.Enabled := not Running;
   btnStop.Enabled := Running;
 

@@ -39,7 +39,7 @@ object FrmMain: TFrmMain
       Text = 'Stop'
       OnClick = btnStopClick
     end
-    object cboGateway: TComboBox
+    object cboProvider: TComboBox
       Position.X = 8.000000000000000000
       Position.Y = 8.000000000000000000
       TabOrder = 2
