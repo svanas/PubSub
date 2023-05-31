@@ -15,6 +15,7 @@ implementation
 
 uses
   // Delphi
+  System.Classes,
   System.IOUtils,
   System.SysUtils,
   WinAPI.ShellAPI,
@@ -90,6 +91,7 @@ begin
   Result := TWeb3Ex.Create(
     chain.SetRPC(WebSocket, GetEndpoint(chain, provider, WebSocket)),
     TJsonRpcSgcWebSocket.Create,
+    TProxy.Disabled,
     SECURITY[provider]
   );
 end;
